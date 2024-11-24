@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useSurah, useReciters } from "@/services/quranApi";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { SurahHeader } from "@/components/surah/SurahHeader";
 import { SurahControls } from "@/components/surah/SurahControls";
@@ -35,7 +35,7 @@ const SurahPage = () => {
     }
   }, [isValidSurah, navigate, toast]);
 
-  const handlePlayAyah = (ayahNumber: number, audioUrl: string) => {
+  const handlePlayAyah = useCallback((ayahNumber: number, audioUrl: string) => {
     setIsPlayingSurah(false);
     if (playingAyah === ayahNumber) {
       audioRef.current?.pause();
@@ -47,9 +47,9 @@ const SurahPage = () => {
         setPlayingAyah(ayahNumber);
       }
     }
-  };
+  }, [playingAyah]);
 
-  const handlePlaySurah = () => {
+  const handlePlaySurah = useCallback(() => {
     if (isPlayingSurah) {
       audioRef.current?.pause();
       setIsPlayingSurah(false);
@@ -63,7 +63,7 @@ const SurahPage = () => {
         setPlayingAyah(surah.ayahs[0].number);
       }
     }
-  };
+  }, [isPlayingSurah, surah?.ayahs]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -95,13 +95,12 @@ const SurahPage = () => {
 
   useEffect(() => {
     if (isValidSurah) {
-      // Track recently viewed Surahs
       const stored = localStorage.getItem("recentSurahs");
       const recentSurahs = stored ? JSON.parse(stored) : [];
       const updatedSurahs = [
         surahNumber,
         ...recentSurahs.filter((num: number) => num !== surahNumber),
-      ].slice(0, 10); // Keep only last 10
+      ].slice(0, 10);
       localStorage.setItem("recentSurahs", JSON.stringify(updatedSurahs));
     }
   }, [isValidSurah, surahNumber]);
