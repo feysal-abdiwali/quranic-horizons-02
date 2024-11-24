@@ -56,7 +56,7 @@ export const SurahControls = ({
         <div className="flex items-center gap-2">
           <Volume2 className="h-4 w-4 text-primary" />
           <Select value={selectedReciter} onValueChange={setSelectedReciter}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-[200px] sm:w-[250px]">
               <SelectValue placeholder="Select Reciter" />
             </SelectTrigger>
             <SelectContent>
