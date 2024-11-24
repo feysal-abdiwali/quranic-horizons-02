@@ -10,9 +10,9 @@ interface AyahCardProps {
 }
 
 export const AyahCard = ({ ayah, isPlaying, onPlayAyah, surahNumber }: AyahCardProps) => (
-  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 sm:p-8 shadow-md hover:shadow-lg transition-all duration-300 animate-fade-in">
+  <div className="glass-card rounded-xl p-4 sm:p-8 animate-scale-up">
     <div className="flex items-start justify-between mb-6 sm:mb-8">
-      <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-primary/10 rounded-full text-primary text-sm sm:text-base font-semibold">
+      <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-premium-gradient rounded-full text-white text-sm sm:text-base font-semibold shadow-lg">
         {ayah.numberInSurah}
       </div>
       <div className="flex items-center gap-2 sm:gap-3">

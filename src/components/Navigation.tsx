@@ -25,9 +25,9 @@ export const Navigation = () => {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left">
+            <SheetContent side="left" className="w-[300px]">
               <SheetHeader>
-                <SheetTitle>Quranic Horizons</SheetTitle>
+                <SheetTitle className="text-primary">Quranic Horizons</SheetTitle>
                 <SheetDescription>
                   Navigate through the Holy Quran
                 </SheetDescription>
@@ -57,7 +57,7 @@ export const Navigation = () => {
               </div>
             </SheetContent>
           </Sheet>
-          <Link to="/" className="text-xl font-bold text-primary">
+          <Link to="/" className="text-xl font-bold text-primary hover:opacity-80 transition-opacity">
             Quranic Horizons
           </Link>
         </div>
@@ -65,7 +65,7 @@ export const Navigation = () => {
         <div className="hidden lg:flex items-center gap-8">
           <Link
             to="/"
-            className={`flex items-center gap-2 hover:text-primary transition-colors ${
+            className={`nav-link flex items-center gap-2 hover:text-primary transition-colors ${
               isActive("/") ? "text-primary font-medium" : "text-foreground"
             }`}
           >
@@ -74,7 +74,7 @@ export const Navigation = () => {
           </Link>
           <Link
             to="/search"
-            className={`flex items-center gap-2 hover:text-primary transition-colors ${
+            className={`nav-link flex items-center gap-2 hover:text-primary transition-colors ${
               isActive("/search") ? "text-primary font-medium" : "text-foreground"
             }`}
           >
@@ -83,7 +83,7 @@ export const Navigation = () => {
           </Link>
           <Link
             to="/recent"
-            className={`flex items-center gap-2 hover:text-primary transition-colors ${
+            className={`nav-link flex items-center gap-2 hover:text-primary transition-colors ${
               isActive("/recent") ? "text-primary font-medium" : "text-foreground"
             }`}
           >
