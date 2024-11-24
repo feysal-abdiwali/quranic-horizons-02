@@ -93,6 +93,19 @@ const SurahPage = () => {
     setCurrentAyahIndex(0);
   }, [selectedReciter]);
 
+  useEffect(() => {
+    if (isValidSurah) {
+      // Track recently viewed Surahs
+      const stored = localStorage.getItem("recentSurahs");
+      const recentSurahs = stored ? JSON.parse(stored) : [];
+      const updatedSurahs = [
+        surahNumber,
+        ...recentSurahs.filter((num: number) => num !== surahNumber),
+      ].slice(0, 10); // Keep only last 10
+      localStorage.setItem("recentSurahs", JSON.stringify(updatedSurahs));
+    }
+  }, [isValidSurah, surahNumber]);
+
   if (!isValidSurah) {
     return null;
   }
