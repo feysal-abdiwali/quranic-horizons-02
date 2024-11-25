@@ -18,8 +18,12 @@ export const StorageInfo = () => {
       const db = await openDB();
       const tx = db.transaction("audioFiles", "readonly");
       const store = tx.objectStore("audioFiles");
-      const count = await store.count();
-      setDownloadCount(count);
+      const countRequest = store.count();
+      
+      // Properly handle the IDBRequest
+      countRequest.onsuccess = () => {
+        setDownloadCount(countRequest.result);
+      };
     } catch (error) {
       console.error('Error calculating downloads:', error);
     }

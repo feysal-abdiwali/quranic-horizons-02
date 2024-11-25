@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Play, Pause } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { StorageInfo } from "@/components/audio/StorageInfo";
+import { openDB } from "@/components/audio/DownloadManager";
 
 interface DownloadedFile {
   key: string;
@@ -23,10 +24,15 @@ const Downloads = () => {
   }, []);
 
   const loadDownloads = async () => {
-    const db = await openDB();
-    const store = db.transaction("audioFiles", "readonly").objectStore("audioFiles");
-    const items = await store.getAll();
-    setDownloads(items);
+    try {
+      const db = await openDB();
+      const tx = db.transaction("audioFiles", "readonly");
+      const store = tx.objectStore("audioFiles");
+      const items = await store.getAll();
+      setDownloads(items);
+    } catch (error) {
+      console.error('Error loading downloads:', error);
+    }
   };
 
   const handlePlay = async (file: DownloadedFile) => {
@@ -51,9 +57,9 @@ const Downloads = () => {
   const handleDelete = async (key: string) => {
     try {
       const db = await openDB();
-      await db.transaction("audioFiles", "readwrite")
-        .objectStore("audioFiles")
-        .delete(key);
+      const tx = db.transaction("audioFiles", "readwrite");
+      const store = tx.objectStore("audioFiles");
+      await store.delete(key);
       
       if (playing === key) {
         audioRef.pause();
