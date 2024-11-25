@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Download, Trash2 } from "lucide-react";
@@ -40,6 +40,10 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
   const key = `${reciter}_${surahNumber}_${ayahNumber || 'full'}`;
   const fileName = `surah_${surahNumber}${ayahNumber ? `_ayah_${ayahNumber}` : ''}_${reciter}.mp3`;
 
+  useEffect(() => {
+    checkIfDownloaded();
+  }, [key]);
+
   const checkIfDownloaded = async () => {
     try {
       const db = await openDB();
@@ -58,10 +62,28 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
 
     try {
       const response = await fetch(audioUrl);
-      const blob = await response.blob();
+      if (!response.ok) throw new Error('Download failed');
 
-      // Create a download link and trigger the download
+      const contentLength = response.headers.get('content-length');
+      const total = contentLength ? parseInt(contentLength, 10) : 0;
+      let loaded = 0;
+
+      const reader = response.body!.getReader();
+      const chunks: Uint8Array[] = [];
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        chunks.push(value);
+        loaded += value.length;
+        setProgress(total ? (loaded / total) * 100 : 0);
+      }
+
+      const blob = new Blob(chunks, { type: 'audio/mpeg' });
       const url = URL.createObjectURL(blob);
+
+      // Create and trigger download
       const a = document.createElement('a');
       a.href = url;
       a.download = fileName;
@@ -81,6 +103,7 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
         ayahNumber,
         fileName,
         timestamp: new Date().toISOString(),
+        blob: await blob.arrayBuffer(), // Store the actual audio data
       });
 
       setIsDownloaded(true);
