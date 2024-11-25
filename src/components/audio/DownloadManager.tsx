@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Download, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface DownloadManagerProps {
   surahNumber: number;
@@ -41,10 +40,6 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
   const key = `${reciter}_${surahNumber}_${ayahNumber || 'full'}`;
   const fileName = `surah_${surahNumber}${ayahNumber ? `_ayah_${ayahNumber}` : ''}_${reciter}.mp3`;
 
-  useEffect(() => {
-    checkIfDownloaded();
-  }, [surahNumber, ayahNumber, reciter]);
-
   const checkIfDownloaded = async () => {
     try {
       const db = await openDB();
@@ -62,73 +57,37 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
     setProgress(0);
 
     try {
-      // Fetch the file
       const response = await fetch(audioUrl);
       const blob = await response.blob();
 
-      // Save file to device using File System Access API
-      try {
-        const handle = await window.showSaveFilePicker({
-          suggestedName: fileName,
-          types: [{
-            description: 'Audio File',
-            accept: { 'audio/mpeg': ['.mp3'] },
-          }],
-        });
+      // Create a download link and trigger the download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
-        const writable = await handle.createWritable();
-        await writable.write(blob);
-        await writable.close();
+      // Store metadata in IndexedDB
+      const db = await openDB();
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      await store.put({
+        key,
+        reciter,
+        surahNumber,
+        ayahNumber,
+        fileName,
+        timestamp: new Date().toISOString(),
+      });
 
-        // Store metadata in IndexedDB
-        const db = await openDB();
-        const tx = db.transaction(STORE_NAME, "readwrite");
-        const store = tx.objectStore(STORE_NAME);
-        await store.put({
-          key,
-          reciter,
-          surahNumber,
-          ayahNumber,
-          fileName,
-          timestamp: new Date().toISOString(),
-          filePath: handle.name,
-        });
-
-        setIsDownloaded(true);
-        toast({
-          title: "Download Complete",
-          description: `Successfully downloaded ${fileName}`,
-        });
-      } catch (err) {
-        // Fallback for browsers that don't support File System Access API
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        // Store metadata in IndexedDB
-        const db = await openDB();
-        const tx = db.transaction(STORE_NAME, "readwrite");
-        const store = tx.objectStore(STORE_NAME);
-        await store.put({
-          key,
-          reciter,
-          surahNumber,
-          ayahNumber,
-          fileName,
-          timestamp: new Date().toISOString(),
-        });
-
-        setIsDownloaded(true);
-        toast({
-          title: "Download Complete",
-          description: `File saved as ${fileName}`,
-        });
-      }
+      setIsDownloaded(true);
+      toast({
+        title: "Download Complete",
+        description: `File saved as ${fileName}`,
+      });
     } catch (error) {
       console.error('Download error:', error);
       toast({

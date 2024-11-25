@@ -20,7 +20,6 @@ export const StorageInfo = () => {
       const store = tx.objectStore("audioFiles");
       const countRequest = store.count();
       
-      // Properly handle the IDBRequest
       countRequest.onsuccess = () => {
         setDownloadCount(countRequest.result);
       };
