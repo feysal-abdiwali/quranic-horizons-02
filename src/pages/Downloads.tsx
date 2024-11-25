@@ -28,8 +28,11 @@ const Downloads = () => {
       const db = await openDB();
       const tx = db.transaction("audioFiles", "readonly");
       const store = tx.objectStore("audioFiles");
-      const items = await store.getAll();
-      setDownloads(items);
+      const request = store.getAll();
+      
+      request.onsuccess = () => {
+        setDownloads(request.result as DownloadedFile[]);
+      };
     } catch (error) {
       console.error('Error loading downloads:', error);
     }
