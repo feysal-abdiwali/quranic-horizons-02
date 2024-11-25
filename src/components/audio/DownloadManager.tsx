@@ -20,14 +20,13 @@ const DB_VERSION = 1;
 export const openDB = () => {
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
-
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+        const store = db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+        store.createIndex('timestamp', 'timestamp', { unique: false });
       }
     };
   });
@@ -40,6 +39,7 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
   const { toast } = useToast();
 
   const key = `${reciter}_${surahNumber}_${ayahNumber || 'full'}`;
+  const fileName = `surah_${surahNumber}${ayahNumber ? `_ayah_${ayahNumber}` : ''}_${reciter}.mp3`;
 
   useEffect(() => {
     checkIfDownloaded();
@@ -62,28 +62,75 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
     setProgress(0);
 
     try {
+      // Fetch the file
       const response = await fetch(audioUrl);
       const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
 
-      const db = await openDB();
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      const store = tx.objectStore(STORE_NAME);
+      // Save file to device using File System Access API
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: fileName,
+          types: [{
+            description: 'Audio File',
+            accept: { 'audio/mpeg': ['.mp3'] },
+          }],
+        });
 
-      await store.put({
-        key,
-        reciter,
-        surahNumber,
-        ayahNumber,
-        url,
-      });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
 
-      setIsDownloaded(true);
-      toast({
-        title: "Download Complete",
-        description: `Successfully downloaded ${ayahNumber ? `Ayah ${ayahNumber}` : `Surah ${surahNumber}`}`,
-      });
+        // Store metadata in IndexedDB
+        const db = await openDB();
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        await store.put({
+          key,
+          reciter,
+          surahNumber,
+          ayahNumber,
+          fileName,
+          timestamp: new Date().toISOString(),
+          filePath: handle.name,
+        });
+
+        setIsDownloaded(true);
+        toast({
+          title: "Download Complete",
+          description: `Successfully downloaded ${fileName}`,
+        });
+      } catch (err) {
+        // Fallback for browsers that don't support File System Access API
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        // Store metadata in IndexedDB
+        const db = await openDB();
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        await store.put({
+          key,
+          reciter,
+          surahNumber,
+          ayahNumber,
+          fileName,
+          timestamp: new Date().toISOString(),
+        });
+
+        setIsDownloaded(true);
+        toast({
+          title: "Download Complete",
+          description: `File saved as ${fileName}`,
+        });
+      }
     } catch (error) {
+      console.error('Download error:', error);
       toast({
         variant: "destructive",
         title: "Download Failed",
@@ -103,14 +150,14 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
       
       setIsDownloaded(false);
       toast({
-        title: "File Deleted",
-        description: "The audio file has been removed from storage.",
+        title: "File Removed",
+        description: "The file has been removed from your downloads list.",
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to delete the audio file.",
+        description: "Failed to remove the file from downloads.",
       });
     }
   };
@@ -139,7 +186,7 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
           className="gap-2 text-destructive"
         >
           <Trash2 className="h-4 w-4" />
-          Delete
+          Remove from Downloads
         </Button>
       )}
     </div>
