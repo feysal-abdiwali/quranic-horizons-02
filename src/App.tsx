@@ -12,6 +12,7 @@ const Index = lazy(() => import("./pages/Index"));
 const Search = lazy(() => import("./pages/Search"));
 const Recent = lazy(() => import("./pages/Recent"));
 const SurahPage = lazy(() => import("./pages/SurahPage"));
+const Downloads = lazy(() => import("./pages/Downloads"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/search" element={<Search />} />
             <Route path="/recent" element={<Recent />} />
             <Route path="/surah/:number" element={<SurahPage />} />
+            <Route path="/downloads" element={<Downloads />} />
           </Routes>
         </Suspense>
       </BrowserRouter>

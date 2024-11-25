@@ -12,11 +12,34 @@ interface DownloadManagerProps {
   reciter: string;
 }
 
+// IndexedDB setup
+const DB_NAME = 'QuranAudioDB';
+const STORE_NAME = 'audioFiles';
+const DB_VERSION = 1;
+
+export const openDB = () => {
+  return new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'key' });
+      }
+    };
+  });
+};
+
 export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: DownloadManagerProps) => {
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isDownloaded, setIsDownloaded] = useState(false);
   const { toast } = useToast();
+
+  const key = `${reciter}_${surahNumber}_${ayahNumber || 'full'}`;
 
   useEffect(() => {
     checkIfDownloaded();
@@ -24,9 +47,11 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
 
   const checkIfDownloaded = async () => {
     try {
-      const key = `quran_audio_${reciter}_${surahNumber}_${ayahNumber || 'full'}`;
-      const stored = localStorage.getItem(key);
-      setIsDownloaded(!!stored);
+      const db = await openDB();
+      const tx = db.transaction(STORE_NAME, "readonly");
+      const store = tx.objectStore(STORE_NAME);
+      const result = await store.get(key);
+      setIsDownloaded(!!result);
     } catch (error) {
       console.error('Error checking download status:', error);
     }
@@ -39,11 +64,20 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
     try {
       const response = await fetch(audioUrl);
       const blob = await response.blob();
-      const key = `quran_audio_${reciter}_${surahNumber}_${ayahNumber || 'full'}`;
-      
-      // Store the audio blob in localStorage (in a real app, use IndexedDB for larger files)
-      localStorage.setItem(key, URL.createObjectURL(blob));
-      
+      const url = URL.createObjectURL(blob);
+
+      const db = await openDB();
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+
+      await store.put({
+        key,
+        reciter,
+        surahNumber,
+        ayahNumber,
+        url,
+      });
+
       setIsDownloaded(true);
       toast({
         title: "Download Complete",
@@ -60,10 +94,13 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     try {
-      const key = `quran_audio_${reciter}_${surahNumber}_${ayahNumber || 'full'}`;
-      localStorage.removeItem(key);
+      const db = await openDB();
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      await store.delete(key);
+      
       setIsDownloaded(false);
       toast({
         title: "File Deleted",

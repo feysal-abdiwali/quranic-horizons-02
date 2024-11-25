@@ -3,52 +3,57 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { openDB } from "./DownloadManager";
 
 export const StorageInfo = () => {
-  const [storageUsed, setStorageUsed] = useState(0);
+  const [downloadCount, setDownloadCount] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
-    calculateStorageUsed();
+    calculateDownloads();
   }, []);
 
-  const calculateStorageUsed = () => {
-    let total = 0;
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key?.startsWith('quran_audio_')) {
-        total += localStorage.getItem(key)?.length || 0;
-      }
+  const calculateDownloads = async () => {
+    try {
+      const db = await openDB();
+      const tx = db.transaction("audioFiles", "readonly");
+      const store = tx.objectStore("audioFiles");
+      const count = await store.count();
+      setDownloadCount(count);
+    } catch (error) {
+      console.error('Error calculating downloads:', error);
     }
-    setStorageUsed(total);
   };
 
-  const clearAllDownloads = () => {
-    const keys = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key?.startsWith('quran_audio_')) {
-        keys.push(key);
-      }
+  const clearAllDownloads = async () => {
+    try {
+      const db = await openDB();
+      const tx = db.transaction("audioFiles", "readwrite");
+      const store = tx.objectStore("audioFiles");
+      await store.clear();
+      
+      setDownloadCount(0);
+      toast({
+        title: "Storage Cleared",
+        description: "All downloaded audio files have been removed.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to clear downloads.",
+      });
     }
-    
-    keys.forEach(key => localStorage.removeItem(key));
-    calculateStorageUsed();
-    
-    toast({
-      title: "Storage Cleared",
-      description: "All downloaded audio files have been removed.",
-    });
   };
 
   return (
     <div className="space-y-4">
       <Alert>
         <AlertDescription>
-          Storage used: {(storageUsed / 1024 / 1024).toFixed(2)} MB
+          Downloaded files: {downloadCount}
         </AlertDescription>
       </Alert>
-      {storageUsed > 0 && (
+      {downloadCount > 0 && (
         <Button
           variant="destructive"
           size="sm"
