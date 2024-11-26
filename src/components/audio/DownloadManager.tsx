@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 interface DownloadManagerProps {
   surahNumber: number;
   ayahNumber?: number;
-  audioUrl: string;
+  audioUrl: string | string[];
   reciter: string;
 }
 
@@ -56,31 +56,47 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
     }
   };
 
+  const downloadSingleAudio = async (url: string): Promise<ArrayBuffer> => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Download failed');
+    return await response.arrayBuffer();
+  };
+
   const handleDownload = async () => {
     setDownloading(true);
     setProgress(0);
 
     try {
-      const response = await fetch(audioUrl);
-      if (!response.ok) throw new Error('Download failed');
+      let audioData: ArrayBuffer;
+      
+      if (Array.isArray(audioUrl)) {
+        // Handle full surah download
+        const totalAyahs = audioUrl.length;
+        const audioBuffers: ArrayBuffer[] = [];
 
-      const contentLength = response.headers.get('content-length');
-      const total = contentLength ? parseInt(contentLength, 10) : 0;
-      let loaded = 0;
+        for (let i = 0; i < totalAyahs; i++) {
+          const buffer = await downloadSingleAudio(audioUrl[i]);
+          audioBuffers.push(buffer);
+          setProgress((i + 1) / totalAyahs * 100);
+        }
 
-      const reader = response.body!.getReader();
-      const chunks: Uint8Array[] = [];
+        // Combine all audio buffers
+        const totalLength = audioBuffers.reduce((acc, buffer) => acc + buffer.byteLength, 0);
+        audioData = new ArrayBuffer(totalLength);
+        const uint8Array = new Uint8Array(audioData);
+        let offset = 0;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        chunks.push(value);
-        loaded += value.length;
-        setProgress(total ? (loaded / total) * 100 : 0);
+        audioBuffers.forEach(buffer => {
+          uint8Array.set(new Uint8Array(buffer), offset);
+          offset += buffer.byteLength;
+        });
+      } else {
+        // Handle single ayah download
+        audioData = await downloadSingleAudio(audioUrl);
+        setProgress(100);
       }
 
-      const blob = new Blob(chunks, { type: 'audio/mpeg' });
+      const blob = new Blob([audioData], { type: 'audio/mpeg' });
       const url = URL.createObjectURL(blob);
 
       // Create and trigger download
@@ -103,7 +119,7 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
         ayahNumber,
         fileName,
         timestamp: new Date().toISOString(),
-        blob: await blob.arrayBuffer(), // Store the actual audio data
+        blob: audioData,
       });
 
       setIsDownloaded(true);

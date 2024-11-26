@@ -132,11 +132,12 @@ const SurahPage = () => {
           onPlaySurah={handlePlaySurah}
           surahNumber={surahNumber}
           audioUrl={surah?.ayahs[0]?.audio}
+          surah={surah}
         />
         <StorageInfo />
         <SurahHeader surah={surah} />
         <div className="space-y-6">
-          {surah?.ayahs.map((ayah) => (
+          {surah?.ayahs.map((ayah: any) => (
             <AyahCard
               key={ayah.number}
               ayah={ayah}

@@ -18,6 +18,7 @@ interface SurahControlsProps {
   onPlaySurah: () => void;
   surahNumber: number;
   audioUrl?: string;
+  surah?: any;
 }
 
 export const SurahControls = ({
@@ -28,6 +29,7 @@ export const SurahControls = ({
   onPlaySurah,
   surahNumber,
   audioUrl,
+  surah,
 }: SurahControlsProps) => (
   <div className="sticky top-16 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b py-4 mb-8 animate-fade-in">
     <div className="container max-w-4xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -46,10 +48,10 @@ export const SurahControls = ({
           {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           {isPlaying ? "Pause Surah" : "Play Surah"}
         </Button>
-        {audioUrl && (
+        {surah && (
           <DownloadManager
             surahNumber={surahNumber}
-            audioUrl={audioUrl}
+            audioUrl={surah.ayahs.map((ayah: any) => ayah.audio)}
             reciter={selectedReciter}
           />
         )}
