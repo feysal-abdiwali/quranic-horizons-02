@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Download, Trash2 } from "lucide-react";
+import { Download, Trash2, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface DownloadManagerProps {
@@ -36,6 +36,7 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
   const [progress, setProgress] = useState(0);
   const [isDownloaded, setIsDownloaded] = useState(false);
   const { toast } = useToast();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const key = `${reciter}_${surahNumber}_${ayahNumber || 'full'}`;
   const fileName = `surah_${surahNumber}${ayahNumber ? `_ayah_${ayahNumber}` : ''}_${reciter}.mp3`;
@@ -57,9 +58,25 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
   };
 
   const downloadSingleAudio = async (url: string): Promise<ArrayBuffer> => {
-    const response = await fetch(url);
+    abortControllerRef.current = new AbortController();
+    const response = await fetch(url, {
+      signal: abortControllerRef.current.signal
+    });
     if (!response.ok) throw new Error('Download failed');
     return await response.arrayBuffer();
+  };
+
+  const handleCancelDownload = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setDownloading(false);
+      setProgress(0);
+      toast({
+        title: "Download Cancelled",
+        description: "The download has been cancelled.",
+      });
+    }
   };
 
   const handleDownload = async () => {
@@ -128,6 +145,9 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
         description: `File saved as ${fileName}`,
       });
     } catch (error) {
+      if (error.name === 'AbortError') {
+        return; // Don't show error toast for cancelled downloads
+      }
       console.error('Download error:', error);
       toast({
         variant: "destructive",
@@ -136,6 +156,7 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
       });
     } finally {
       setDownloading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -163,7 +184,18 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
   return (
     <div className="space-y-2">
       {downloading && (
-        <Progress value={progress} className="w-full h-2" />
+        <div className="space-y-2">
+          <Progress value={progress} className="w-full h-2" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCancelDownload}
+            className="gap-2 text-destructive"
+          >
+            <X className="h-4 w-4" />
+            Cancel Download
+          </Button>
+        </div>
       )}
       {!isDownloaded ? (
         <Button
