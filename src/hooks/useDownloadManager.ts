@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
-import { checkIfExists, storeInDB, deleteFromDB, getAllKeysForSurah } from '@/utils/indexedDB';
+import { checkIfExists, storeInDB } from '@/utils/indexedDB';
 
 export const useDownloadManager = (
   surahNumber: number,
@@ -39,31 +39,6 @@ export const useDownloadManager = (
       toast({
         title: "Download Cancelled",
         description: "The download has been cancelled.",
-      });
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      if (ayahNumber) {
-        // Delete single ayah
-        await deleteFromDB([key]);
-      } else {
-        // Delete entire surah
-        const allKeys = await getAllKeysForSurah(reciter, surahNumber);
-        await deleteFromDB(allKeys);
-      }
-      
-      setIsDownloaded(false);
-      toast({
-        title: "File Removed",
-        description: "The file has been removed from your downloads list.",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to remove the file from downloads.",
       });
     }
   };
@@ -149,7 +124,6 @@ export const useDownloadManager = (
     progress,
     isDownloaded,
     handleDownload,
-    handleDelete,
     handleCancelDownload,
     checkDownloadStatus
   };
