@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Download, Check, X } from "lucide-react";
+import { Download, Check, X, RotateCw } from "lucide-react";
 import { useDownloadManager } from "@/hooks/useDownloadManager";
 
 interface DownloadManagerProps {
@@ -42,7 +42,7 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
         </div>
       )}
       {!downloading && (
-        <>
+        <div className="flex items-center gap-2">
           {!isDownloaded ? (
             <Button
               variant="outline"
@@ -54,12 +54,23 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
               Download
             </Button>
           ) : (
-            <div className="flex items-center gap-2 text-primary">
-              <Check className="h-4 w-4" />
-              <span className="text-sm">Downloaded</span>
-            </div>
+            <>
+              <div className="flex items-center gap-2 text-primary">
+                <Check className="h-4 w-4" />
+                <span className="text-sm">Downloaded</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleDownload(audioUrl)}
+                className="gap-2"
+              >
+                <RotateCw className="h-4 w-4" />
+                Redownload
+              </Button>
+            </>
           )}
-        </>
+        </div>
       )}
     </div>
   );
