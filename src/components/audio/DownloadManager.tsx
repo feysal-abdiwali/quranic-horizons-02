@@ -23,7 +23,7 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
 
   useEffect(() => {
     checkDownloadStatus();
-  }, []);
+  }, [checkDownloadStatus]);
 
   return (
     <div className="space-y-2">
@@ -41,22 +41,25 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
           </Button>
         </div>
       )}
-      {!isDownloaded ? (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleDownload(audioUrl)}
-          disabled={downloading}
-          className="gap-2"
-        >
-          <Download className="h-4 w-4" />
-          {downloading ? "Downloading..." : "Download"}
-        </Button>
-      ) : (
-        <div className="flex items-center gap-2 text-primary">
-          <Check className="h-4 w-4" />
-          <span className="text-sm">Downloaded</span>
-        </div>
+      {!downloading && (
+        <>
+          {!isDownloaded ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleDownload(audioUrl)}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Download
+            </Button>
+          ) : (
+            <div className="flex items-center gap-2 text-primary">
+              <Check className="h-4 w-4" />
+              <span className="text-sm">Downloaded</span>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
