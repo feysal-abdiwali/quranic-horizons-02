@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Download, X, Check } from "lucide-react";
+import { Download, Trash2, X } from "lucide-react";
 import { useDownloadManager } from "@/hooks/useDownloadManager";
 
 interface DownloadManagerProps {
@@ -17,6 +17,7 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
     progress,
     isDownloaded,
     handleDownload,
+    handleDelete,
     handleCancelDownload,
     checkDownloadStatus
   } = useDownloadManager(surahNumber, ayahNumber, reciter);
@@ -53,10 +54,15 @@ export const DownloadManager = ({ surahNumber, ayahNumber, audioUrl, reciter }: 
           {downloading ? "Downloading..." : "Download"}
         </Button>
       ) : (
-        <div className="flex items-center gap-2 text-primary">
-          <Check className="h-4 w-4" />
-          <span className="text-sm">Downloaded</span>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDelete}
+          className="gap-2 text-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
+          Remove from Downloads
+        </Button>
       )}
     </div>
   );
