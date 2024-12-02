@@ -9,7 +9,7 @@ export const useDownloadManager = (
 ) => {
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [isDownloaded, setIsDownloaded] = useState(false);
+  const [isDownloaded, setIsDownloaded] = useState(false); // Initialize as false by default
   const abortControllerRef = useRef<AbortController | null>(null);
   const { toast } = useToast();
 
@@ -17,8 +17,13 @@ export const useDownloadManager = (
   const fileName = `surah_${surahNumber}${ayahNumber ? `_ayah_${ayahNumber}` : ''}_${reciter}.mp3`;
 
   const checkDownloadStatus = async () => {
-    const exists = await checkIfExists(key);
-    setIsDownloaded(exists);
+    try {
+      const exists = await checkIfExists(key);
+      setIsDownloaded(exists);
+    } catch (error) {
+      console.error('Error checking download status:', error);
+      setIsDownloaded(false); // Ensure false state on error
+    }
   };
 
   const downloadSingleAudio = async (url: string): Promise<ArrayBuffer> => {
@@ -133,6 +138,7 @@ export const useDownloadManager = (
         return;
       }
       console.error('Download error:', error);
+      setIsDownloaded(false); // Ensure false state on error
       toast({
         variant: "destructive",
         title: "Download Failed",
