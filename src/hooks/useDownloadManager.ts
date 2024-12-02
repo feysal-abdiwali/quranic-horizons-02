@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useToast } from "@/components/ui/use-toast";
-import { checkIfExists, storeInDB, deleteFromDB, getAllKeysForSurah } from '@/utils/indexedDB';
+import { checkIfExists, storeInDB } from '@/utils/indexedDB';
 
 export const useDownloadManager = (
   surahNumber: number,
@@ -9,22 +9,22 @@ export const useDownloadManager = (
 ) => {
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [isDownloaded, setIsDownloaded] = useState(false); // Initialize as false by default
+  const [isDownloaded, setIsDownloaded] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { toast } = useToast();
 
   const key = `${reciter}_${surahNumber}_${ayahNumber || 'full'}`;
   const fileName = `surah_${surahNumber}${ayahNumber ? `_ayah_${ayahNumber}` : ''}_${reciter}.mp3`;
 
-  const checkDownloadStatus = async () => {
+  const checkDownloadStatus = useCallback(async () => {
     try {
       const exists = await checkIfExists(key);
       setIsDownloaded(exists);
     } catch (error) {
       console.error('Error checking download status:', error);
-      setIsDownloaded(false); // Ensure false state on error
+      setIsDownloaded(false);
     }
-  };
+  }, [key]);
 
   const downloadSingleAudio = async (url: string): Promise<ArrayBuffer> => {
     abortControllerRef.current = new AbortController();
@@ -44,31 +44,6 @@ export const useDownloadManager = (
       toast({
         title: "Download Cancelled",
         description: "The download has been cancelled.",
-      });
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      if (ayahNumber) {
-        // Delete single ayah
-        await deleteFromDB([key]);
-      } else {
-        // Delete entire surah
-        const allKeys = await getAllKeysForSurah(reciter, surahNumber);
-        await deleteFromDB(allKeys);
-      }
-      
-      setIsDownloaded(false);
-      toast({
-        title: "File Removed",
-        description: "The file has been removed from your downloads list.",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to remove the file from downloads.",
       });
     }
   };
@@ -138,7 +113,6 @@ export const useDownloadManager = (
         return;
       }
       console.error('Download error:', error);
-      setIsDownloaded(false); // Ensure false state on error
       toast({
         variant: "destructive",
         title: "Download Failed",
@@ -155,7 +129,6 @@ export const useDownloadManager = (
     progress,
     isDownloaded,
     handleDownload,
-    handleDelete,
     handleCancelDownload,
     checkDownloadStatus
   };
