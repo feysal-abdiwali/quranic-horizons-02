@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Download, X, Check } from "lucide-react";
+import { Download, Check, X } from "lucide-react";
 import { useDownloadManager } from "@/hooks/useDownloadManager";
 
 interface DownloadManagerProps {
