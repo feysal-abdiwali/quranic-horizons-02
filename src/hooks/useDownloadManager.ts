@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
-import { checkIfExists, storeInDB } from '@/utils/indexedDB';
+import { checkIfExists, storeInDB, deleteFromDB, getAllKeysForSurah } from '@/utils/indexedDB';
 
 export const useDownloadManager = (
   surahNumber: number,
@@ -16,15 +16,10 @@ export const useDownloadManager = (
   const key = `${reciter}_${surahNumber}_${ayahNumber || 'full'}`;
   const fileName = `surah_${surahNumber}${ayahNumber ? `_ayah_${ayahNumber}` : ''}_${reciter}.mp3`;
 
-  const checkDownloadStatus = useCallback(async () => {
-    try {
-      const exists = await checkIfExists(key);
-      setIsDownloaded(exists);
-    } catch (error) {
-      console.error('Error checking download status:', error);
-      setIsDownloaded(false);
-    }
-  }, [key]);
+  const checkDownloadStatus = async () => {
+    const exists = await checkIfExists(key);
+    setIsDownloaded(exists);
+  };
 
   const downloadSingleAudio = async (url: string): Promise<ArrayBuffer> => {
     abortControllerRef.current = new AbortController();
@@ -44,6 +39,31 @@ export const useDownloadManager = (
       toast({
         title: "Download Cancelled",
         description: "The download has been cancelled.",
+      });
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      if (ayahNumber) {
+        // Delete single ayah
+        await deleteFromDB([key]);
+      } else {
+        // Delete entire surah
+        const allKeys = await getAllKeysForSurah(reciter, surahNumber);
+        await deleteFromDB(allKeys);
+      }
+      
+      setIsDownloaded(false);
+      toast({
+        title: "File Removed",
+        description: "The file has been removed from your downloads list.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to remove the file from downloads.",
       });
     }
   };
@@ -129,6 +149,7 @@ export const useDownloadManager = (
     progress,
     isDownloaded,
     handleDownload,
+    handleDelete,
     handleCancelDownload,
     checkDownloadStatus
   };
