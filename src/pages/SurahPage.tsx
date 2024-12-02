@@ -144,6 +144,7 @@ const SurahPage = () => {
               isPlaying={playingAyah === ayah.number}
               onPlayAyah={() => handlePlayAyah(ayah.number, ayah.audio)}
               surahNumber={surahNumber}
+              surahName={surah.englishName}
             />
           ))}
         </div>
