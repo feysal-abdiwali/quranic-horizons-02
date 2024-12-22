@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { checkIfExists, storeInDB } from '@/utils/indexedDB';
 
@@ -16,15 +16,10 @@ export const useDownloadManager = (
   const key = `${reciter}_${surahNumber}_${ayahNumber || 'full'}`;
   const fileName = `surah_${surahNumber}${ayahNumber ? `_ayah_${ayahNumber}` : ''}_${reciter}.mp3`;
 
-  const checkDownloadStatus = useCallback(async () => {
-    try {
-      const exists = await checkIfExists(key);
-      setIsDownloaded(exists);
-    } catch (error) {
-      console.error('Error checking download status:', error);
-      setIsDownloaded(false);
-    }
-  }, [key]);
+  const checkDownloadStatus = async () => {
+    const exists = await checkIfExists(key);
+    setIsDownloaded(exists);
+  };
 
   const downloadSingleAudio = async (url: string): Promise<ArrayBuffer> => {
     abortControllerRef.current = new AbortController();
