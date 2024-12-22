@@ -17,8 +17,13 @@ export const useDownloadManager = (
   const fileName = `surah_${surahNumber}${ayahNumber ? `_ayah_${ayahNumber}` : ''}_${reciter}.mp3`;
 
   const checkDownloadStatus = async () => {
-    const exists = await checkIfExists(key);
-    setIsDownloaded(exists);
+    try {
+      const exists = await checkIfExists(key);
+      setIsDownloaded(exists);
+    } catch (error) {
+      console.error('Error checking download status:', error);
+      setIsDownloaded(false);
+    }
   };
 
   const downloadSingleAudio = async (url: string): Promise<ArrayBuffer> => {
@@ -46,10 +51,8 @@ export const useDownloadManager = (
   const handleDelete = async () => {
     try {
       if (ayahNumber) {
-        // Delete single ayah
         await deleteFromDB([key]);
       } else {
-        // Delete entire surah
         const allKeys = await getAllKeysForSurah(reciter, surahNumber);
         await deleteFromDB(allKeys);
       }
@@ -60,6 +63,7 @@ export const useDownloadManager = (
         description: "The file has been removed from your downloads list.",
       });
     } catch (error) {
+      console.error('Error deleting file:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -76,7 +80,6 @@ export const useDownloadManager = (
       let audioData: ArrayBuffer;
       
       if (Array.isArray(audioUrl)) {
-        // Handle full surah download
         const totalAyahs = audioUrl.length;
         const audioBuffers: ArrayBuffer[] = [];
 
@@ -96,12 +99,10 @@ export const useDownloadManager = (
           offset += buffer.byteLength;
         });
       } else {
-        // Handle single ayah download
         audioData = await downloadSingleAudio(audioUrl);
         setProgress(100);
       }
 
-      // Create and trigger download
       const blob = new Blob([audioData], { type: 'audio/mpeg' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -112,7 +113,6 @@ export const useDownloadManager = (
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Store in IndexedDB
       await storeInDB({
         key,
         reciter,
@@ -133,6 +133,7 @@ export const useDownloadManager = (
         return;
       }
       console.error('Download error:', error);
+      setIsDownloaded(false);
       toast({
         variant: "destructive",
         title: "Download Failed",
