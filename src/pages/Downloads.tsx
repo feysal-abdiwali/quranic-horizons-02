@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Play, Pause, Download, Check } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { StorageInfo } from "@/components/audio/StorageInfo";
-import { openDB } from "@/components/audio/DownloadManager";
+import { openDB } from "@/utils/indexedDB";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 

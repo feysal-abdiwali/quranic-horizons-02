@@ -3,7 +3,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { openDB } from "./DownloadManager";
+import { openDB } from "@/utils/indexedDB";
 
 export const StorageInfo = () => {
   const [downloadCount, setDownloadCount] = useState(0);
