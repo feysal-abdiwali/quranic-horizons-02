@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { checkIfExists, storeInDB, deleteFromDB, getAllKeysForSurah } from '@/utils/indexedDB';
 
@@ -25,6 +25,11 @@ export const useDownloadManager = (
       setIsDownloaded(false);
     }
   };
+
+  // Initialize download status when component mounts
+  useEffect(() => {
+    checkDownloadStatus();
+  }, [key]); // Re-check when key changes (different surah, ayah, or reciter)
 
   const downloadSingleAudio = async (url: string): Promise<ArrayBuffer> => {
     abortControllerRef.current = new AbortController();
@@ -75,6 +80,7 @@ export const useDownloadManager = (
   const handleDownload = async (audioUrl: string | string[]) => {
     setDownloading(true);
     setProgress(0);
+    setIsDownloaded(false); // Reset download status at start
 
     try {
       let audioData: ArrayBuffer;
