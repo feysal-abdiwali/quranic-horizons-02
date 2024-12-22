@@ -28,6 +28,9 @@ export const AyahCard = ({ ayah, isPlaying, onPlayAyah, surahNumber, surahName }
     }
   };
 
+  // Format the ayah text by ensuring proper spacing and direction
+  const formattedAyahText = ayah.text.trim().replace(/\s+/g, ' ');
+
   return (
     <div className="glass-card rounded-xl p-4 sm:p-8 animate-scale-up">
       <div className="flex items-start justify-between mb-6 sm:mb-8">
@@ -63,9 +66,13 @@ export const AyahCard = ({ ayah, isPlaying, onPlayAyah, surahNumber, surahName }
           />
         </div>
       </div>
-      <p className="arabic-text text-xl sm:text-2xl leading-loose text-right mb-6 sm:mb-8">
-        {ayah.text}
-      </p>
+      <div 
+        className="arabic-text text-xl sm:text-2xl leading-[2.5] sm:leading-[3] text-right mb-6 sm:mb-8 font-['Amiri']"
+        dir="rtl"
+        lang="ar"
+      >
+        {formattedAyahText}
+      </div>
       <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
         {ayah.translation}
       </p>
