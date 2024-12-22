@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useToast } from "@/components/ui/use-toast";
-import { checkIfExists, storeInDB, deleteFromDB, getAllKeysForSurah } from '@/utils/indexedDB';
+import { storeInDB, deleteFromDB, getAllKeysForSurah } from '@/utils/indexedDB';
 
 export const useDownloadManager = (
   surahNumber: number,
@@ -9,27 +9,11 @@ export const useDownloadManager = (
 ) => {
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [isDownloaded, setIsDownloaded] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { toast } = useToast();
 
   const key = `${reciter}_${surahNumber}_${ayahNumber || 'full'}`;
   const fileName = `surah_${surahNumber}${ayahNumber ? `_ayah_${ayahNumber}` : ''}_${reciter}.mp3`;
-
-  const checkDownloadStatus = async () => {
-    try {
-      const exists = await checkIfExists(key);
-      setIsDownloaded(exists);
-    } catch (error) {
-      console.error('Error checking download status:', error);
-      setIsDownloaded(false);
-    }
-  };
-
-  // Initialize download status when component mounts
-  useEffect(() => {
-    checkDownloadStatus();
-  }, [key]); // Re-check when key changes (different surah, ayah, or reciter)
 
   const downloadSingleAudio = async (url: string): Promise<ArrayBuffer> => {
     abortControllerRef.current = new AbortController();
@@ -53,34 +37,9 @@ export const useDownloadManager = (
     }
   };
 
-  const handleDelete = async () => {
-    try {
-      if (ayahNumber) {
-        await deleteFromDB([key]);
-      } else {
-        const allKeys = await getAllKeysForSurah(reciter, surahNumber);
-        await deleteFromDB(allKeys);
-      }
-      
-      setIsDownloaded(false);
-      toast({
-        title: "File Removed",
-        description: "The file has been removed from your downloads list.",
-      });
-    } catch (error) {
-      console.error('Error deleting file:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to remove the file from downloads.",
-      });
-    }
-  };
-
   const handleDownload = async (audioUrl: string | string[]) => {
     setDownloading(true);
     setProgress(0);
-    setIsDownloaded(false); // Reset download status at start
 
     try {
       let audioData: ArrayBuffer;
@@ -129,7 +88,6 @@ export const useDownloadManager = (
         blob: audioData,
       });
 
-      setIsDownloaded(true);
       toast({
         title: "Download Complete",
         description: `File saved as ${fileName}`,
@@ -139,7 +97,6 @@ export const useDownloadManager = (
         return;
       }
       console.error('Download error:', error);
-      setIsDownloaded(false);
       toast({
         variant: "destructive",
         title: "Download Failed",
@@ -154,10 +111,7 @@ export const useDownloadManager = (
   return {
     downloading,
     progress,
-    isDownloaded,
     handleDownload,
-    handleDelete,
     handleCancelDownload,
-    checkDownloadStatus
   };
 };
