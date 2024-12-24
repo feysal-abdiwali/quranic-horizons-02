@@ -28,8 +28,11 @@ export const AyahCard = ({ ayah, isPlaying, onPlayAyah, surahNumber, surahName }
     }
   };
 
-  // Format the ayah text by ensuring proper spacing and direction
-  const formattedAyahText = ayah.text.trim().replace(/\s+/g, ' ');
+  // Enhanced text formatting with improved spacing and Unicode normalization
+  const formattedAyahText = ayah.text
+    .trim()
+    .replace(/\s+/g, ' ')
+    .normalize('NFKC');
 
   return (
     <div className="glass-card rounded-xl p-4 sm:p-8 animate-scale-up">
@@ -67,9 +70,14 @@ export const AyahCard = ({ ayah, isPlaying, onPlayAyah, surahNumber, surahName }
         </div>
       </div>
       <div 
-        className="arabic-text text-xl sm:text-2xl leading-[2.5] sm:leading-[3] text-right mb-6 sm:mb-8 font-['Amiri']"
+        className="arabic-text text-2xl sm:text-3xl leading-[2.8] sm:leading-[3.2] text-right mb-8 font-['Amiri'] tracking-wide"
         dir="rtl"
         lang="ar"
+        style={{
+          textRendering: 'optimizeLegibility',
+          WebkitFontSmoothing: 'antialiased',
+          MozOsxFontSmoothing: 'grayscale'
+        }}
       >
         {formattedAyahText}
       </div>
