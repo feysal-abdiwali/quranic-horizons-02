@@ -7,6 +7,7 @@ import { SurahHeader } from "@/components/surah/SurahHeader";
 import { SurahControls } from "@/components/surah/SurahControls";
 import { AyahCard } from "@/components/surah/AyahCard";
 import { StorageInfo } from "@/components/audio/StorageInfo";
+import { motion, AnimatePresence } from "framer-motion";
 
 const SurahPage = () => {
   const { number } = useParams();
@@ -111,43 +112,87 @@ const SurahPage = () => {
 
   if (isLoading) {
     return (
-      <div className="container max-w-4xl mx-auto py-8">
-        <Skeleton className="h-12 w-48 mb-8" />
-        {Array.from({ length: 5 }).map((_, index) => (
-          <Skeleton key={index} className="h-32 mb-4 rounded-xl" />
-        ))}
+      <div className="min-h-screen pattern-bg">
+        <div className="container max-w-4xl mx-auto py-8 space-y-8">
+          <div className="glass-card rounded-xl p-8 animate-pulse">
+            <div className="flex justify-center mb-6">
+              <Skeleton className="w-16 h-16 rounded-full" />
+            </div>
+            <Skeleton className="h-8 w-48 mx-auto mb-4" />
+            <Skeleton className="h-6 w-32 mx-auto mb-2" />
+            <Skeleton className="h-4 w-64 mx-auto" />
+          </div>
+          {[1, 2, 3].map((index) => (
+            <div key={index} className="glass-card rounded-xl p-8 space-y-6">
+              <div className="flex justify-between items-center">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-8 w-8" />
+                  <Skeleton className="h-8 w-8" />
+                  <Skeleton className="h-8 w-8" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-3/4" />
+              </div>
+              <Skeleton className="h-24 w-full" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen pattern-bg">
-      <audio ref={audioRef} className="hidden" />
-      <div className="container max-w-4xl mx-auto py-8 animate-fade-in">
-        <SurahControls
-          selectedReciter={selectedReciter}
-          setSelectedReciter={setSelectedReciter}
-          reciters={reciters || []}
-          isPlaying={isPlayingSurah}
-          onPlaySurah={handlePlaySurah}
-          surahNumber={surahNumber}
-          audioUrl={surah?.ayahs[0]?.audio}
-          surah={surah}
-        />
-        <StorageInfo />
-        <SurahHeader surah={surah} />
-        <div className="space-y-6">
-          {surah?.ayahs.map((ayah: any) => (
-            <AyahCard
-              key={ayah.number}
-              ayah={ayah}
-              isPlaying={playingAyah === ayah.number}
-              onPlayAyah={() => handlePlayAyah(ayah.number, ayah.audio)}
+      <audio 
+        ref={audioRef} 
+        className="hidden" 
+        onPlay={() => console.log("Audio started playing")}
+        onError={(e) => console.error("Audio error:", e)}
+      />
+      <div className="container max-w-4xl mx-auto py-8">
+        <AnimatePresence mode="wait">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <SurahControls
+              selectedReciter={selectedReciter}
+              setSelectedReciter={setSelectedReciter}
+              reciters={reciters || []}
+              isPlaying={isPlayingSurah}
+              onPlaySurah={handlePlaySurah}
               surahNumber={surahNumber}
-              surahName={surah.englishName}
+              audioUrl={surah?.ayahs[0]?.audio}
+              surah={surah}
             />
-          ))}
-        </div>
+            <StorageInfo />
+            <SurahHeader surah={surah} />
+            <div className="space-y-6">
+              {surah?.ayahs.map((ayah: any) => (
+                <motion.div
+                  key={ayah.number}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <AyahCard
+                    ayah={ayah}
+                    isPlaying={playingAyah === ayah.number}
+                    onPlayAyah={() => handlePlayAyah(ayah.number, ayah.audio)}
+                    surahNumber={surahNumber}
+                    surahName={surah.englishName}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
