@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useSurahs } from "@/services/quranApi";
 import { Input } from "@/components/ui/input";
