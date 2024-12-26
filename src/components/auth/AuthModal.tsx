@@ -34,7 +34,7 @@ export const AuthModal = () => {
               }
             }
           }}
-          providers={["google", "apple", "azure"]}
+          providers={["google"]}
           redirectTo={`${window.location.origin}/auth/callback`}
           onlyThirdPartyProviders
         />
