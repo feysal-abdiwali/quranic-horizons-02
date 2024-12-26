@@ -10,29 +10,10 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./ThemeToggle";
-import { AuthModal } from "./auth/AuthModal";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
 
 export const Navigation = () => {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b z-50">
@@ -111,21 +92,7 @@ export const Navigation = () => {
           </Link>
         </div>
         
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          {user ? (
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => supabase.auth.signOut()}
-              className="gap-2"
-            >
-              Sign Out
-            </Button>
-          ) : (
-            <AuthModal />
-          )}
-        </div>
+        <ThemeToggle />
       </div>
     </nav>
   );

@@ -14,13 +14,12 @@ const Recent = lazy(() => import("./pages/Recent"));
 const SurahPage = lazy(() => import("./pages/SurahPage"));
 const Downloads = lazy(() => import("./pages/Downloads"));
 const Bookmarks = lazy(() => import("./pages/Bookmarks"));
-const AuthCallback = lazy(() => import("./pages/auth/callback"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
-      gcTime: 30 * 60 * 1000,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 30 * 60 * 1000, // 30 minutes (renamed from cacheTime)
       refetchOnWindowFocus: false,
       retry: 1,
     },
@@ -53,7 +52,6 @@ const App = () => (
             <Route path="/surah/:number" element={<SurahPage />} />
             <Route path="/downloads" element={<Downloads />} />
             <Route path="/bookmarks" element={<Bookmarks />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
           </Routes>
         </Suspense>
       </BrowserRouter>
