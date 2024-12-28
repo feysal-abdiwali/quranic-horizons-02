@@ -153,7 +153,7 @@ See the [LICENSE](LICENSE) file for details.
 
 ## 🤔 Questions?
 
-Feel free to [open an issue](https://github.com/yourusername/quran-app/issues) for:
+Feel free to [open an issue](https://github.com/feysal-abdiwali/quran-app/issues) for:
 - Bug reports
 - Feature requests
 - Documentation improvements
