@@ -6,11 +6,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Book, ScrollText, Keyboard } from "lucide-react";
 import { motion } from "framer-motion";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { SurahCard } from "@/components/surah/SurahCard";
+import { MaintenanceAlert } from "@/components/MaintenanceAlert";
 
 const Index = () => {
-  const { data: surahs, isLoading } = useSurahs();
+  const { data: surahs, isLoading, error } = useSurahs();
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -35,6 +36,11 @@ const Index = () => {
       surah.englishName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       surah.englishNameTranslation.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // If there's an API error, show the maintenance alert
+  if (error) {
+    return <MaintenanceAlert />;
+  }
 
   return (
     <main className="min-h-screen pattern-bg">
