@@ -2,6 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+🌐 **Visit the live website: [QuranicHorizons](https://quranichorizons.com/)**
+
 ## 🌟 Overview
 
 This is a respectful and carefully crafted Quran application that allows users to:
